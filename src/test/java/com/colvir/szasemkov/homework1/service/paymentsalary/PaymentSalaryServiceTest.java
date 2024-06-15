@@ -52,7 +52,7 @@ class PaymentSalaryServiceTest {
 
         when(employeeRepository.save(any())).thenReturn(any());
 
-        Employee employee = new Employee(1, "Ivan", "Ivanov", 500, "Department1");
+        Employee employee = new Employee("Ivan", "Ivanov", 500, "Department1");
 
         when(employeeRepository.findById(1)).thenReturn(Optional.of(employee));
 
@@ -101,8 +101,8 @@ class PaymentSalaryServiceTest {
         //given
         Date date1 = new Date(2024, Calendar.JUNE, 4);
         Date date2 = new Date(2024, Calendar.MAY, 26);
-        PaymentSalary paymentSalary1 = new PaymentSalary(1, 11, 500, date1, true);
-        PaymentSalary paymentSalary2 = new PaymentSalary(2, 12, 400, date2, false);
+        PaymentSalary paymentSalary1 = new PaymentSalary(11, 500, date1, true);
+        PaymentSalary paymentSalary2 = new PaymentSalary(12, 400, date2, false);
 
         when(paymentSalaryRepository.findAll()).thenReturn(List.of(paymentSalary1, paymentSalary2));
 
@@ -111,13 +111,11 @@ class PaymentSalaryServiceTest {
 
         //then
         PaymentSalaryResponse paymentSalaryResponse1 = new PaymentSalaryResponse();
-        paymentSalaryResponse1.setId(1);
         paymentSalaryResponse1.setEmployeeId(11);
         paymentSalaryResponse1.setAmount(500);
         paymentSalaryResponse1.setDate(date1);
         paymentSalaryResponse1.setStatus(true);
         PaymentSalaryResponse paymentSalaryResponse2 = new PaymentSalaryResponse();
-        paymentSalaryResponse2.setId(2);
         paymentSalaryResponse2.setEmployeeId(12);
         paymentSalaryResponse2.setAmount(400);
         paymentSalaryResponse2.setDate(date2);
@@ -137,7 +135,7 @@ class PaymentSalaryServiceTest {
     void getById() {
         //given
         Date date = new Date(2024, Calendar.JUNE, 4);
-        PaymentSalary paymentSalary = new PaymentSalary(1, 11, 500, date, true);
+        PaymentSalary paymentSalary = new PaymentSalary(11, 500, date, true);
 
         when(paymentSalaryRepository.findById(1)).thenReturn(Optional.of(paymentSalary));
 
@@ -146,7 +144,6 @@ class PaymentSalaryServiceTest {
 
         //then
         PaymentSalaryResponse expectedPaymentSalaryResponse = new PaymentSalaryResponse();
-        expectedPaymentSalaryResponse.setId(1);
         expectedPaymentSalaryResponse.setEmployeeId(11);
         expectedPaymentSalaryResponse.setAmount(500);
         expectedPaymentSalaryResponse.setDate(date);
@@ -182,11 +179,11 @@ class PaymentSalaryServiceTest {
         Date date = new Date(2024, Calendar.JUNE, 4);
         request.setDate(date);
 
-        PaymentSalary paymentSalary = new PaymentSalary(11, 1, 300, date, false);
+        PaymentSalary paymentSalary = new PaymentSalary(1, 300, date, false);
 
         when(paymentSalaryRepository.findById(11)).thenReturn(Optional.of(paymentSalary));
 
-        Employee employee = new Employee(1, "Ivan", "Ivanov", 500, "Department1");
+        Employee employee = new Employee("Ivan", "Ivanov", 500, "Department1");
 
         when(employeeRepository.findById(1)).thenReturn(Optional.of(employee));
 
@@ -244,7 +241,7 @@ class PaymentSalaryServiceTest {
 
         when(paymentSalaryRepository.findById(11)).thenReturn(Optional.empty());
 
-        Employee employee = new Employee(1, "Ivan", "Ivanov", 500, "Department1");
+        Employee employee = new Employee("Ivan", "Ivanov", 500, "Department1");
 
         when(employeeRepository.findById(1)).thenReturn(Optional.of(employee));
 
@@ -262,7 +259,7 @@ class PaymentSalaryServiceTest {
     void delete() {
         //given
         Date date = new Date(2024, Calendar.JUNE, 4);
-        PaymentSalary paymentSalary = new PaymentSalary(11, 1, 300, date, false);
+        PaymentSalary paymentSalary = new PaymentSalary(1, 300, date, false);
 
         when(paymentSalaryRepository.findById(11)).thenReturn(Optional.of(paymentSalary));
 
@@ -271,7 +268,6 @@ class PaymentSalaryServiceTest {
 
         //then
         PaymentSalaryResponse expectedResponse = new PaymentSalaryResponse();
-        expectedResponse.setId(11);
         expectedResponse.setEmployeeId(1);
         expectedResponse.setAmount(300);
         expectedResponse.setDate(date);
@@ -303,11 +299,11 @@ class PaymentSalaryServiceTest {
     void paySalary() {
         //given
         Date date = new Date(2024, Calendar.JUNE, 4);
-        PaymentSalary paymentSalary = new PaymentSalary(1, 11, 500, date, false);
+        PaymentSalary paymentSalary = new PaymentSalary(11, 500, date, false);
 
         when(paymentSalaryRepository.findById(1)).thenReturn(Optional.of(paymentSalary));
 
-        Employee employee = new Employee(11, "Ivan", "Ivanov", 500, "Department1");
+        Employee employee = new Employee("Ivan", "Ivanov", 500, "Department1");
 
         when(employeeRepository.findById(11)).thenReturn(Optional.of(employee));
 
@@ -316,7 +312,6 @@ class PaymentSalaryServiceTest {
 
         //then
         PaymentSalaryResponse expectedPaymentSalaryResponse = new PaymentSalaryResponse();
-        expectedPaymentSalaryResponse.setId(1);
         expectedPaymentSalaryResponse.setEmployeeId(11);
         expectedPaymentSalaryResponse.setAmount(500);
         expectedPaymentSalaryResponse.setDate(date);
@@ -349,11 +344,11 @@ class PaymentSalaryServiceTest {
     void paySalary_wrongSalary() {
         //given
         Date date = new Date(2024, Calendar.JUNE, 4);
-        PaymentSalary paymentSalary = new PaymentSalary(1, 11, 300, date, false);
+        PaymentSalary paymentSalary = new PaymentSalary(11, 300, date, false);
 
         when(paymentSalaryRepository.findById(1)).thenReturn(Optional.of(paymentSalary));
 
-        Employee employee = new Employee(11, "Ivan", "Ivanov", 500, "Department1");
+        Employee employee = new Employee("Ivan", "Ivanov", 500, "Department1");
 
         when(employeeRepository.findById(11)).thenReturn(Optional.of(employee));
 
