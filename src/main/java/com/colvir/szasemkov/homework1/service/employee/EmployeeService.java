@@ -48,7 +48,7 @@ public class EmployeeService {
 
         Employee updatedEmployee = employeeMapper.updateEmployeeRequestToEmployee(request);
 
-        employeeRepository.update(updatedEmployee);
+        employeeRepository.save(updatedEmployee);
 
         return employeeMapper.employeeToEmployeeResponse(updatedEmployee);
     }
@@ -57,7 +57,7 @@ public class EmployeeService {
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new EmployeeNotFoundException(String.format(EMPLOYEE_IS_NOT_FOUND, id)));
 
-        employeeRepository.delete(id);
+        employeeRepository.deleteById(id);
 
         return employeeMapper.employeeToEmployeeResponse(employee);
     }

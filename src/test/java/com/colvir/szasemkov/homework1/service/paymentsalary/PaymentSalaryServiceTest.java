@@ -1,6 +1,5 @@
 package com.colvir.szasemkov.homework1.service.paymentsalary;
 
-import com.colvir.szasemkov.homework1.dto.employee.*;
 import com.colvir.szasemkov.homework1.dto.paymentsalary.*;
 import com.colvir.szasemkov.homework1.exception.employee.EmployeeNotFoundException;
 import com.colvir.szasemkov.homework1.exception.paymentsalary.PaymentSalaryNotFoundException;
@@ -17,7 +16,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.time.Instant;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -202,7 +200,7 @@ class PaymentSalaryServiceTest {
 
         verify(employeeRepository).findById(1);
         verify(paymentSalaryRepository).findById(11);
-        verify(paymentSalaryRepository).update(any());
+        verify(paymentSalaryRepository).save(any());
         verifyNoMoreInteractions(paymentSalaryRepository);
     }
 
@@ -276,7 +274,7 @@ class PaymentSalaryServiceTest {
         assertThat(actualResponse).isEqualTo(expectedResponse);
 
         verify(paymentSalaryRepository).findById(11);
-        verify(paymentSalaryRepository).delete(11);
+        verify(paymentSalaryRepository).deleteById(11);
         verifyNoMoreInteractions(paymentSalaryRepository);
     }
 
@@ -321,7 +319,7 @@ class PaymentSalaryServiceTest {
 
         verify(employeeRepository).findById(11);
         verify(paymentSalaryRepository).findById(1);
-        verify(paymentSalaryRepository).update(paymentSalary);
+        verify(paymentSalaryRepository).save(paymentSalary);
         verifyNoMoreInteractions(paymentSalaryRepository);
     }
 

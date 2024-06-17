@@ -14,8 +14,8 @@ import java.util.Date;
 public class PaymentSalary {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq")
-    @SequenceGenerator(name = "seq", sequenceName = "seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_payment")
+    @SequenceGenerator(name = "seq_payment", sequenceName = "seq_payment", allocationSize = 1)
     private Integer id;
 
     private Integer employeeId;
