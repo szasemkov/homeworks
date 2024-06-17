@@ -1,47 +1,62 @@
 package com.colvir.szasemkov.homework1.repository.employee;
 
 import com.colvir.szasemkov.homework1.model.employee.Employee;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
 
 @Repository
+@Transactional
+@RequiredArgsConstructor
 public class EmployeeRepository {
-    private final Set<Employee> employees = new HashSet<>();
+    private final SessionFactory sessionFactory;
 
     public Employee save(Employee employee) {
-        employees.add(employee);
+        Session session = sessionFactory.getCurrentSession();
+        session.persist(employee);
+
         return employee;
     }
 
     public List<Employee> findAll() {
-        return new ArrayList<>(employees);
+        Session session = sessionFactory.getCurrentSession();
+
+        return session.createQuery("select t from Employee t", Employee.class)
+                .getResultList();
     }
 
 
     public Optional<Employee> findById(Integer id) {
-        return employees.stream()
-                .filter(employee -> employee.getId().equals(id))
-                .findFirst();
+        Session session = sessionFactory.getCurrentSession();
+
+        return session.createQuery("select t from Employee t where t.id = :id", Employee.class)
+                .setParameter("id", id)
+                .getResultList().stream().findFirst();
     }
 
     public Employee update(Employee employeeForUpdate) {
-        for (Employee employee : employees) {
-            if (employee.getId().equals(employeeForUpdate.getId())) {
-                employee.setFirstName(employeeForUpdate.getFirstName());
-                employee.setLastName(employeeForUpdate.getLastName());
-                employee.setSalary(employeeForUpdate.getSalary());
-                employee.setDepartment(employeeForUpdate.getDepartment());
-            }
-        }
-        return employeeForUpdate;
+        Session session = sessionFactory.getCurrentSession();
+
+        Employee updatedEmployee = session.get(Employee.class, employeeForUpdate.getId());
+
+        updatedEmployee.setFirstName(employeeForUpdate.getFirstName());
+        updatedEmployee.setLastName(employeeForUpdate.getLastName());
+        updatedEmployee.setSalary(employeeForUpdate.getSalary());
+        updatedEmployee.setDepartment(employeeForUpdate.getDepartment());
+
+        return updatedEmployee;
     }
 
     public Employee delete(Integer id) {
-        Employee employeeForDelete = employees.stream()
-                .filter(employee -> employee.getId().equals(id))
-                .findFirst().get();
-        employees.remove(employeeForDelete);
+        Session session = sessionFactory.getCurrentSession();
+        Employee employeeForDelete = session.get(Employee.class, id);
+
+        session.remove(employeeForDelete);
+
         return employeeForDelete;
     }
 

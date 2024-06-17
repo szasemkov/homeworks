@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -19,12 +18,10 @@ public class EmployeeService {
     private final EmployeeMapper employeeMapper;
     private final EmployeeRepository employeeRepository;
 
-    private Random random = new Random();
-
     public CreateEmployeeResponse createEmployee(CreateEmployeeRequest request) {
 
         Employee employee =
-                new Employee(random.nextInt(),request.getFirstName(), request.getLastName(), request.getSalary(),
+                new Employee(request.getFirstName(), request.getLastName(), request.getSalary(),
                         request.getDepartment());
 
         employeeRepository.save(employee);

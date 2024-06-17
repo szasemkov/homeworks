@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -24,14 +23,13 @@ public class PaymentSalaryService {
     private final PaymentSalaryMapper paymentSalaryMapper;
     private final PaymentSalaryRepository paymentSalaryRepository;
     private final EmployeeRepository employeeRepository;
-    private Random random = new Random();
 
     public CreatePaymentSalaryResponse createPaymentSalary(CreatePaymentSalaryRequest request) {
         Integer employeeId = request.getEmployeeId();
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new EmployeeNotFoundException(String.format(EMPLOYEE_IS_NOT_FOUND, employeeId)));
         PaymentSalary paymentSalary =
-                new PaymentSalary(random.nextInt(), employeeId, request.getAmount(), request.getDate(),false);
+                new PaymentSalary(employeeId, request.getAmount(), request.getDate(),false);
 
         paymentSalaryRepository.save(paymentSalary);
 

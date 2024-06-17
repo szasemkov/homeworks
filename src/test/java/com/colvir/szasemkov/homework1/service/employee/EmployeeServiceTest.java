@@ -67,8 +67,8 @@ class EmployeeServiceTest {
     @Test
     void getAll() {
         //given
-        Employee employee1 = new Employee(1, "Ivan", "Ivanov", 500, "Department1");
-        Employee employee2 = new Employee(2, "Petr", "Petrov", 400, "Department2");
+        Employee employee1 = new Employee("Ivan", "Ivanov", 500, "Department1");
+        Employee employee2 = new Employee("Petr", "Petrov", 400, "Department2");
 
         when(employeeRepository.findAll()).thenReturn(List.of(employee1, employee2));
 
@@ -77,13 +77,11 @@ class EmployeeServiceTest {
 
         //then
         EmployeeResponse employeeResponse1 = new EmployeeResponse();
-        employeeResponse1.setId(1);
         employeeResponse1.setFirstName("Ivan");
         employeeResponse1.setLastName("Ivanov");
         employeeResponse1.setSalary(500);
         employeeResponse1.setDepartment("Department1");
         EmployeeResponse employeeResponse2 = new EmployeeResponse();
-        employeeResponse2.setId(2);
         employeeResponse2.setFirstName("Petr");
         employeeResponse2.setLastName("Petrov");
         employeeResponse2.setSalary(400);
@@ -102,16 +100,15 @@ class EmployeeServiceTest {
     @Test
     void getById() {
         //given
-        Employee employee1 = new Employee(1, "Ivan", "Ivanov", 500, "Department1");
+        Employee employee = new Employee("Ivan", "Ivanov", 500, "Department1");
 
-        when(employeeRepository.findById(1)).thenReturn(Optional.of(employee1));
+        when(employeeRepository.findById(1)).thenReturn(Optional.of(employee));
 
         //when
         EmployeeResponse actualResponse = employeeService.getById(1);
 
         //then
         EmployeeResponse expectedEmployeeResponse = new EmployeeResponse();
-        expectedEmployeeResponse.setId(1);
         expectedEmployeeResponse.setFirstName("Ivan");
         expectedEmployeeResponse.setLastName("Ivanov");
         expectedEmployeeResponse.setSalary(500);
@@ -148,7 +145,8 @@ class EmployeeServiceTest {
         request.setSalary(500);
         request.setDepartment("Department1");
 
-        Employee employee = new Employee(1, "Ivan", "Ivanov", 500, "Department1");
+        Employee employee = new Employee("Ivan", "Ivanov", 500, "Department1");
+        employee.setId(1);
 
         when(employeeRepository.findById(1)).thenReturn(Optional.of(employee));
 
@@ -196,7 +194,7 @@ class EmployeeServiceTest {
     @Test
     void delete() {
         //given
-        Employee employee1 = new Employee(1, "Ivan", "Ivanov", 500, "Department1");
+        Employee employee1 = new Employee("Ivan", "Ivanov", 500, "Department1");
 
         when(employeeRepository.findById(1)).thenReturn(Optional.of(employee1));
 
@@ -205,7 +203,6 @@ class EmployeeServiceTest {
 
         //then
         EmployeeResponse expectedEmployeeResponse = new EmployeeResponse();
-        expectedEmployeeResponse.setId(1);
         expectedEmployeeResponse.setFirstName("Ivan");
         expectedEmployeeResponse.setLastName("Ivanov");
         expectedEmployeeResponse.setSalary(500);
