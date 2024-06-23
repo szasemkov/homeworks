@@ -60,7 +60,7 @@ public class PaymentSalaryService {
 
         PaymentSalary updatedPaymentSalary = paymentSalaryMapper.updatePaymentSalaryRequestToPaymentSalary(request);
 
-        paymentSalaryRepository.update(updatedPaymentSalary);
+        paymentSalaryRepository.save(updatedPaymentSalary);
 
         return paymentSalaryMapper.paymentSalaryToPaymentSalaryResponse(updatedPaymentSalary);
     }
@@ -69,7 +69,7 @@ public class PaymentSalaryService {
         PaymentSalary paymentSalary = paymentSalaryRepository.findById(id)
                 .orElseThrow(() -> new PaymentSalaryNotFoundException(String.format(PAYMENT_SALARY_NOT_FOUND, id)));
 
-        paymentSalaryRepository.delete(id);
+        paymentSalaryRepository.deleteById(id);
 
         return paymentSalaryMapper.paymentSalaryToPaymentSalaryResponse(paymentSalary);
     }
@@ -91,7 +91,7 @@ public class PaymentSalaryService {
 
         paymentSalary.setStatus(true);
 
-        paymentSalaryRepository.update(paymentSalary);
+        paymentSalaryRepository.save(paymentSalary);
 
         return paymentSalaryMapper.paymentSalaryToPaymentSalaryResponse(paymentSalary);
     }

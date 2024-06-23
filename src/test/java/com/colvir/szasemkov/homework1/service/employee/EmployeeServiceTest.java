@@ -164,7 +164,7 @@ class EmployeeServiceTest {
         assertThat(actualResponse).isEqualTo(expectedEmployeeResponse);
 
         verify(employeeRepository).findById(1);
-        verify(employeeRepository).update(employee);
+        verify(employeeRepository).save(employee);
         verifyNoMoreInteractions(employeeRepository);
     }
 
@@ -211,7 +211,7 @@ class EmployeeServiceTest {
         assertThat(actualResponse).isEqualTo(expectedEmployeeResponse);
 
         verify(employeeRepository).findById(1);
-        verify(employeeRepository).delete(1);
+        verify(employeeRepository).deleteById(1);
         verifyNoMoreInteractions(employeeRepository);
     }
 
