@@ -1,8 +1,10 @@
 package com.colvir.szasemkov.homework1.dto.employee;
 
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder(setterPrefix = "set")
 public class UpdateEmployeeRequest {
     private Integer id;
 

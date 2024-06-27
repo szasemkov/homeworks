@@ -9,7 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import static com.colvir.szasemkov.homework1.model.InternalErrorStatus.*;
+import static com.colvir.szasemkov.homework1.model.InternalErrorStatus.EMPLOYEE_DOES_NOT_EXIST;
+import static com.colvir.szasemkov.homework1.model.InternalErrorStatus.PAYMENT_SALARY_DOES_NOT_EXIST;
+import static com.colvir.szasemkov.homework1.model.InternalErrorStatus.WRONG_SALARY;
 
 @RestControllerAdvice
 public class ControllerExceptionHandler {

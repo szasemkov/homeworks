@@ -1,13 +1,15 @@
 package com.colvir.szasemkov.homework1.service.employee;
 
+import com.colvir.szasemkov.homework1.config.TestConfig;
 import com.colvir.szasemkov.homework1.dto.employee.*;
 import com.colvir.szasemkov.homework1.exception.employee.EmployeeNotFoundException;
-import com.colvir.szasemkov.homework1.mapper.employee.EmployeeMapperImpl;
+import com.colvir.szasemkov.homework1.mapper.employee.EmployeeMapper;
 import com.colvir.szasemkov.homework1.model.employee.Employee;
 import com.colvir.szasemkov.homework1.repository.employee.EmployeeRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -16,17 +18,25 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static com.colvir.szasemkov.homework1.generator.EmployeeDtoGenerator.*;
+import static com.colvir.szasemkov.homework1.generator.EmployeeGenerator.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
         EmployeeService.class,
-        EmployeeMapperImpl.class
+        EmployeeMapper.class
 })
+@SpringBootTest(classes = {TestConfig.class})
 class EmployeeServiceTest {
+
+    public static final Integer WRONG_EMPLOYEE_ID = 1;
+    public static final String WRONG_EMPLOYEE_MESSAGE = String.format("Employee with id = %s is not found", WRONG_EMPLOYEE_ID);
+
     @Autowired
     private EmployeeService employeeService;
 
@@ -35,13 +45,9 @@ class EmployeeServiceTest {
 
 
     @Test
-    void createEmployee() {
+     void createEmployee() {
         //given
-        CreateEmployeeRequest request = new CreateEmployeeRequest();
-        request.setFirstName("Ivan");
-        request.setLastName("Ivanov");
-        request.setSalary(500);
-        request.setDepartment("Department1");
+        CreateEmployeeRequest request = createEmployeeRequestBuilder().build();
 
         when(employeeRepository.save(any())).thenReturn(any());
 
@@ -49,11 +55,7 @@ class EmployeeServiceTest {
         CreateEmployeeResponse actualResponse = employeeService.createEmployee(request);
 
         //then
-        CreateEmployeeResponse expectedResponse = new CreateEmployeeResponse();
-        expectedResponse.setFirstName("Ivan");
-        expectedResponse.setLastName("Ivanov");
-        expectedResponse.setSalary(500);
-        expectedResponse.setDepartment("Department1");
+        CreateEmployeeResponse expectedResponse = createEmployeeResponseBuilder().build();
 
         assertThat(actualResponse)
                 .usingRecursiveComparison()
@@ -64,11 +66,12 @@ class EmployeeServiceTest {
         verifyNoMoreInteractions(employeeRepository);
     }
 
+
     @Test
     void getAll() {
         //given
-        Employee employee1 = new Employee("Ivan", "Ivanov", 500, "Department1");
-        Employee employee2 = new Employee("Petr", "Petrov", 400, "Department2");
+        Employee employee1 = generateEmployee1().build();
+        Employee employee2 = generateEmployee2().build();
 
         when(employeeRepository.findAll()).thenReturn(List.of(employee1, employee2));
 
@@ -76,16 +79,9 @@ class EmployeeServiceTest {
         EmployeePageResponse actualResponse = employeeService.getAll();
 
         //then
-        EmployeeResponse employeeResponse1 = new EmployeeResponse();
-        employeeResponse1.setFirstName("Ivan");
-        employeeResponse1.setLastName("Ivanov");
-        employeeResponse1.setSalary(500);
-        employeeResponse1.setDepartment("Department1");
-        EmployeeResponse employeeResponse2 = new EmployeeResponse();
-        employeeResponse2.setFirstName("Petr");
-        employeeResponse2.setLastName("Petrov");
-        employeeResponse2.setSalary(400);
-        employeeResponse2.setDepartment("Department2");
+        EmployeeResponse employeeResponse1 = employee1ResponseBuilder().build();
+        EmployeeResponse employeeResponse2 = employee2ResponseBuilder().build();
+
         List<EmployeeResponse> expectedEmployees = new ArrayList<>();
         expectedEmployees.add(employeeResponse1);
         expectedEmployees.add(employeeResponse2);
@@ -97,26 +93,24 @@ class EmployeeServiceTest {
         verifyNoMoreInteractions(employeeRepository);
     }
 
+
     @Test
     void getById() {
         //given
-        Employee employee = new Employee("Ivan", "Ivanov", 500, "Department1");
+        Employee employee = generateEmployeeAfterCreateBuilder().build();
 
-        when(employeeRepository.findById(1)).thenReturn(Optional.of(employee));
+        Integer employeeId = employee.getId();
+        when(employeeRepository.findById(employeeId)).thenReturn(Optional.of(employee));
 
         //when
-        EmployeeResponse actualResponse = employeeService.getById(1);
+        EmployeeResponse actualResponse = employeeService.getById(employeeId);
 
         //then
-        EmployeeResponse expectedEmployeeResponse = new EmployeeResponse();
-        expectedEmployeeResponse.setFirstName("Ivan");
-        expectedEmployeeResponse.setLastName("Ivanov");
-        expectedEmployeeResponse.setSalary(500);
-        expectedEmployeeResponse.setDepartment("Department1");
+        EmployeeResponse expectedEmployeeResponse = employeeResponseBuilder().build();
 
         assertThat(actualResponse).isEqualTo(expectedEmployeeResponse);
 
-        verify(employeeRepository).findById(1);
+        verify(employeeRepository).findById(employeeId);
         verifyNoMoreInteractions(employeeRepository);
     }
 
@@ -124,46 +118,36 @@ class EmployeeServiceTest {
     @Test
     void getById_employeeNotFound() {
         //given
-        when(employeeRepository.findById(1)).thenReturn(Optional.empty());
+        when(employeeRepository.findById(WRONG_EMPLOYEE_ID)).thenReturn(Optional.empty());
 
         //when & then
-        Exception exception = assertThrows(EmployeeNotFoundException.class, () -> employeeService.getById(1));
-        String expectedMessage = "Employee with id = 1 is not found";
-        assertEquals(expectedMessage, exception.getMessage());
+        Exception exception = assertThrows(EmployeeNotFoundException.class, () -> employeeService.getById(WRONG_EMPLOYEE_ID));
+        assertEquals(WRONG_EMPLOYEE_MESSAGE, exception.getMessage());
 
-        verify(employeeRepository).findById(1);
+        verify(employeeRepository).findById(WRONG_EMPLOYEE_ID);
         verifyNoMoreInteractions(employeeRepository);
     }
+
 
     @Test
     void update() {
         //given
-        UpdateEmployeeRequest request = new UpdateEmployeeRequest();
-        request.setId(1);
-        request.setFirstName("Ivan");
-        request.setLastName("Ivanov");
-        request.setSalary(500);
-        request.setDepartment("Department1");
+        UpdateEmployeeRequest request = updateEmployeeRequestBuilder().build();
 
-        Employee employee = new Employee("Ivan", "Ivanov", 500, "Department1");
-        employee.setId(1);
+        Integer requestEmployeeId = request.getId();
 
-        when(employeeRepository.findById(1)).thenReturn(Optional.of(employee));
+        Employee employee = generateEmployeeAfterCreateBuilder().build();
+
+        when(employeeRepository.findById(requestEmployeeId)).thenReturn(Optional.of(employee));
 
         //when
         EmployeeResponse actualResponse = employeeService.update(request);
 
         //then
-        EmployeeResponse expectedEmployeeResponse = new EmployeeResponse();
-        expectedEmployeeResponse.setId(1);
-        expectedEmployeeResponse.setFirstName("Ivan");
-        expectedEmployeeResponse.setLastName("Ivanov");
-        expectedEmployeeResponse.setSalary(500);
-        expectedEmployeeResponse.setDepartment("Department1");
-
+        EmployeeResponse expectedEmployeeResponse = employeeResponseBuilder().build();
         assertThat(actualResponse).isEqualTo(expectedEmployeeResponse);
 
-        verify(employeeRepository).findById(1);
+        verify(employeeRepository).findById(requestEmployeeId);
         verify(employeeRepository).save(employee);
         verifyNoMoreInteractions(employeeRepository);
     }
@@ -172,21 +156,18 @@ class EmployeeServiceTest {
     @Test
     void update_employeeNotFound() {
         //given
-        UpdateEmployeeRequest request = new UpdateEmployeeRequest();
-        request.setId(1);
-        request.setFirstName("Ivan");
-        request.setLastName("Ivanov");
-        request.setSalary(500);
-        request.setDepartment("Department1");
+        UpdateEmployeeRequest request = updateEmployeeRequestBuilder().build();
 
-        when(employeeRepository.findById(1)).thenReturn(Optional.empty());
+        Integer requestEmployeeId = request.getId();
+
+        when(employeeRepository.findById(requestEmployeeId)).thenReturn(Optional.empty());
 
         //when & then
         Exception exception = assertThrows(EmployeeNotFoundException.class, () -> employeeService.update(request));
-        String expectedMessage = "Employee with id = 1 is not found";
+        String expectedMessage = String.format("Employee with id = %s is not found", requestEmployeeId);
         assertEquals(expectedMessage, exception.getMessage());
 
-        verify(employeeRepository).findById(1);
+        verify(employeeRepository).findById(requestEmployeeId);
         verifyNoMoreInteractions(employeeRepository);
     }
 
@@ -194,24 +175,21 @@ class EmployeeServiceTest {
     @Test
     void delete() {
         //given
-        Employee employee1 = new Employee("Ivan", "Ivanov", 500, "Department1");
+        Employee employee = generateEmployeeAfterCreateBuilder().build();
 
-        when(employeeRepository.findById(1)).thenReturn(Optional.of(employee1));
+        Integer employeeId = employee.getId();
+
+        when(employeeRepository.findById(employeeId)).thenReturn(Optional.of(employee));
 
         //when
-        EmployeeResponse actualResponse = employeeService.delete(1);
+        EmployeeResponse actualResponse = employeeService.delete(employeeId);
 
         //then
-        EmployeeResponse expectedEmployeeResponse = new EmployeeResponse();
-        expectedEmployeeResponse.setFirstName("Ivan");
-        expectedEmployeeResponse.setLastName("Ivanov");
-        expectedEmployeeResponse.setSalary(500);
-        expectedEmployeeResponse.setDepartment("Department1");
-
+        EmployeeResponse expectedEmployeeResponse = employeeResponseBuilder().build();
         assertThat(actualResponse).isEqualTo(expectedEmployeeResponse);
 
-        verify(employeeRepository).findById(1);
-        verify(employeeRepository).deleteById(1);
+        verify(employeeRepository).findById(employeeId);
+        verify(employeeRepository).deleteById(employeeId);
         verifyNoMoreInteractions(employeeRepository);
     }
 
@@ -219,14 +197,13 @@ class EmployeeServiceTest {
     @Test
     void delete_employeeNotFound() {
         //given
-        when(employeeRepository.findById(1)).thenReturn(Optional.empty());
+        when(employeeRepository.findById(WRONG_EMPLOYEE_ID)).thenReturn(Optional.empty());
 
         //when & then
-        Exception exception = assertThrows(EmployeeNotFoundException.class, () -> employeeService.delete(1));
-        String expectedMessage = "Employee with id = 1 is not found";
-        assertEquals(expectedMessage, exception.getMessage());
+        Exception exception = assertThrows(EmployeeNotFoundException.class, () -> employeeService.delete(WRONG_EMPLOYEE_ID));
+        assertEquals(WRONG_EMPLOYEE_MESSAGE, exception.getMessage());
 
-        verify(employeeRepository).findById(1);
+        verify(employeeRepository).findById(WRONG_EMPLOYEE_ID);
         verifyNoMoreInteractions(employeeRepository);
     }
 
