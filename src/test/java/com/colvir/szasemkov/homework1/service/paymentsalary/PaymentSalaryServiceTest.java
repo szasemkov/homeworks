@@ -1,10 +1,15 @@
 package com.colvir.szasemkov.homework1.service.paymentsalary;
 
-import com.colvir.szasemkov.homework1.dto.paymentsalary.*;
+import com.colvir.szasemkov.homework1.config.TestConfig;
+import com.colvir.szasemkov.homework1.dto.paymentsalary.CreatePaymentSalaryRequest;
+import com.colvir.szasemkov.homework1.dto.paymentsalary.CreatePaymentSalaryResponse;
+import com.colvir.szasemkov.homework1.dto.paymentsalary.PaymentSalaryPageResponse;
+import com.colvir.szasemkov.homework1.dto.paymentsalary.PaymentSalaryResponse;
+import com.colvir.szasemkov.homework1.dto.paymentsalary.UpdatePaymentSalaryRequest;
 import com.colvir.szasemkov.homework1.exception.employee.EmployeeNotFoundException;
 import com.colvir.szasemkov.homework1.exception.paymentsalary.PaymentSalaryNotFoundException;
 import com.colvir.szasemkov.homework1.exception.paymentsalary.WrongSalaryException;
-import com.colvir.szasemkov.homework1.mapper.paymentsalary.PaymentSalaryMapperImpl;
+import com.colvir.szasemkov.homework1.mapper.paymentsalary.PaymentSalaryMapper;
 import com.colvir.szasemkov.homework1.model.employee.Employee;
 import com.colvir.szasemkov.homework1.model.paymentsalary.PaymentSalary;
 import com.colvir.szasemkov.homework1.repository.employee.EmployeeRepository;
@@ -12,24 +17,45 @@ import com.colvir.szasemkov.homework1.repository.paymentsalary.PaymentSalaryRepo
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
+import static com.colvir.szasemkov.homework1.generator.EmployeeGenerator.generateEmployee1;
+import static com.colvir.szasemkov.homework1.generator.EmployeeGenerator.generateEmployeeAfterCreateBuilder;
+import static com.colvir.szasemkov.homework1.generator.PaymentSalaryDtoGenerator.createPaymentSalaryRequestBuilder;
+import static com.colvir.szasemkov.homework1.generator.PaymentSalaryDtoGenerator.createPaymentSalaryResponseBuilder;
+import static com.colvir.szasemkov.homework1.generator.PaymentSalaryDtoGenerator.paymentSalary1ResponseBuilder;
+import static com.colvir.szasemkov.homework1.generator.PaymentSalaryDtoGenerator.paymentSalary2ResponseBuilder;
+import static com.colvir.szasemkov.homework1.generator.PaymentSalaryDtoGenerator.paymentSalaryResponseBuilder;
+import static com.colvir.szasemkov.homework1.generator.PaymentSalaryDtoGenerator.updatePaymentSalaryRequestBuilder;
+import static com.colvir.szasemkov.homework1.generator.PaymentSalaryGenerator.generatePaymentSalary1;
+import static com.colvir.szasemkov.homework1.generator.PaymentSalaryGenerator.generatePaymentSalary2;
+import static com.colvir.szasemkov.homework1.generator.PaymentSalaryGenerator.generatePaymentSalaryAfterCreateBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
         PaymentSalaryService.class,
-        PaymentSalaryMapperImpl.class
+        PaymentSalaryMapper.class
 })
+@SpringBootTest(classes = {TestConfig.class})
 class PaymentSalaryServiceTest {
+
+    public static final Integer WRONG_PAYMENT_SALARY_ID = 500;
+    public static final String WRONG_PAYMENT_SALARY_MESSAGE = String.format("PaymentSalary with id = %s is not found", WRONG_PAYMENT_SALARY_ID);
+
     @Autowired
     private PaymentSalaryService paymentSalaryService;
 
@@ -40,35 +66,28 @@ class PaymentSalaryServiceTest {
     private EmployeeRepository employeeRepository;
 
     @Test
-    void createPaymentSalary() {
+    void createPaymentSalary_success() {
         //given
-        CreatePaymentSalaryRequest request = new CreatePaymentSalaryRequest();
-        request.setEmployeeId(1);
-        request.setAmount(300);
-        Date date = new Date(2024, Calendar.JUNE, 4);
-        request.setDate(date);
+        CreatePaymentSalaryRequest request = createPaymentSalaryRequestBuilder().build();
+        Integer requestEmployeeId = request.getEmployeeId();
+
+        Employee employee = generateEmployeeAfterCreateBuilder().build();
 
         when(employeeRepository.save(any())).thenReturn(any());
-
-        Employee employee = new Employee("Ivan", "Ivanov", 500, "Department1");
-
-        when(employeeRepository.findById(1)).thenReturn(Optional.of(employee));
+        when(employeeRepository.findById(requestEmployeeId)).thenReturn(Optional.of(employee));
 
         //when
         CreatePaymentSalaryResponse actualResponse = paymentSalaryService.createPaymentSalary(request);
 
         //then
-        CreatePaymentSalaryResponse expectedResponse = new CreatePaymentSalaryResponse();
-        expectedResponse.setEmployeeId(1);
-        expectedResponse.setAmount(300);
-        expectedResponse.setDate(date);
+        CreatePaymentSalaryResponse expectedResponse = createPaymentSalaryResponseBuilder().build();
 
         assertThat(actualResponse)
                 .usingRecursiveComparison()
                 .ignoringFields("id")
                 .isEqualTo(expectedResponse);
 
-        verify(employeeRepository).findById(1);
+        verify(employeeRepository).findById(requestEmployeeId);
         verify(paymentSalaryRepository).save(any());
         verifyNoMoreInteractions(paymentSalaryRepository);
     }
@@ -77,30 +96,26 @@ class PaymentSalaryServiceTest {
     @Test
     void createPaymentSalary_employeeNotFound() {
         //given
-        CreatePaymentSalaryRequest request = new CreatePaymentSalaryRequest();
-        request.setEmployeeId(1);
-        request.setAmount(300);
-        Date date = new Date(2024, Calendar.JUNE, 4);
-        request.setDate(date);
+        CreatePaymentSalaryRequest request = createPaymentSalaryRequestBuilder().build();
 
-        when(employeeRepository.findById(1)).thenReturn(Optional.empty());
+        Integer requestEmployeeId = request.getEmployeeId();
+
+        when(employeeRepository.findById(requestEmployeeId)).thenReturn(Optional.empty());
 
         //when & then
         Exception exception = assertThrows(EmployeeNotFoundException.class, () -> paymentSalaryService.createPaymentSalary(request));
-        String expectedMessage = "Employee with id = 1 is not found";
+        String expectedMessage = String.format("Employee with id = %s is not found", requestEmployeeId);
         assertEquals(expectedMessage, exception.getMessage());
 
-        verify(employeeRepository).findById(1);
+        verify(employeeRepository).findById(requestEmployeeId);
         verifyNoMoreInteractions(paymentSalaryRepository);
     }
 
     @Test
     void getAll() {
         //given
-        Date date1 = new Date(2024, Calendar.JUNE, 4);
-        Date date2 = new Date(2024, Calendar.MAY, 26);
-        PaymentSalary paymentSalary1 = new PaymentSalary(11, 500, date1, true);
-        PaymentSalary paymentSalary2 = new PaymentSalary(12, 400, date2, false);
+        PaymentSalary paymentSalary1 = generatePaymentSalary1().build();
+        PaymentSalary paymentSalary2 = generatePaymentSalary2().build();
 
         when(paymentSalaryRepository.findAll()).thenReturn(List.of(paymentSalary1, paymentSalary2));
 
@@ -108,16 +123,9 @@ class PaymentSalaryServiceTest {
         PaymentSalaryPageResponse actualResponse = paymentSalaryService.getAll();
 
         //then
-        PaymentSalaryResponse paymentSalaryResponse1 = new PaymentSalaryResponse();
-        paymentSalaryResponse1.setEmployeeId(11);
-        paymentSalaryResponse1.setAmount(500);
-        paymentSalaryResponse1.setDate(date1);
-        paymentSalaryResponse1.setStatus(true);
-        PaymentSalaryResponse paymentSalaryResponse2 = new PaymentSalaryResponse();
-        paymentSalaryResponse2.setEmployeeId(12);
-        paymentSalaryResponse2.setAmount(400);
-        paymentSalaryResponse2.setDate(date2);
-        paymentSalaryResponse2.setStatus(false);
+        PaymentSalaryResponse paymentSalaryResponse1 = paymentSalary1ResponseBuilder().build();
+        PaymentSalaryResponse paymentSalaryResponse2 = paymentSalary2ResponseBuilder().build();
+
         List<PaymentSalaryResponse> expectedPaymentSalaries = new ArrayList<>();
         expectedPaymentSalaries.add(paymentSalaryResponse1);
         expectedPaymentSalaries.add(paymentSalaryResponse2);
@@ -130,76 +138,64 @@ class PaymentSalaryServiceTest {
     }
 
     @Test
-    void getById() {
+    void getById_success() {
         //given
-        Date date = new Date(2024, Calendar.JUNE, 4);
-        PaymentSalary paymentSalary = new PaymentSalary(11, 500, date, true);
+        PaymentSalary paymentSalary = generatePaymentSalary1().build();
+        Integer paymentSalaryId = paymentSalary.getId();
 
-        when(paymentSalaryRepository.findById(1)).thenReturn(Optional.of(paymentSalary));
+        when(paymentSalaryRepository.findById(paymentSalaryId)).thenReturn(Optional.of(paymentSalary));
 
         //when
-        PaymentSalaryResponse actualResponse = paymentSalaryService.getById(1);
+        PaymentSalaryResponse actualResponse = paymentSalaryService.getById(paymentSalaryId);
 
         //then
-        PaymentSalaryResponse expectedPaymentSalaryResponse = new PaymentSalaryResponse();
-        expectedPaymentSalaryResponse.setEmployeeId(11);
-        expectedPaymentSalaryResponse.setAmount(500);
-        expectedPaymentSalaryResponse.setDate(date);
-        expectedPaymentSalaryResponse.setStatus(true);
+        PaymentSalaryResponse expectedPaymentSalaryResponse = paymentSalary1ResponseBuilder().build();
 
         assertThat(actualResponse).isEqualTo(expectedPaymentSalaryResponse);
 
-        verify(paymentSalaryRepository).findById(1);
+        verify(paymentSalaryRepository).findById(paymentSalaryId);
         verifyNoMoreInteractions(paymentSalaryRepository);
     }
 
     @Test
     void getById_paymentSalaryNotFound() {
         //given
-        when(paymentSalaryRepository.findById(1)).thenReturn(Optional.empty());
+        when(paymentSalaryRepository.findById(WRONG_PAYMENT_SALARY_ID)).thenReturn(Optional.empty());
 
         //when & then
-        Exception exception = assertThrows(PaymentSalaryNotFoundException.class, () -> paymentSalaryService.getById(1));
-        String expectedMessage = "PaymentSalary with id = 1 is not found";
-        assertEquals(expectedMessage, exception.getMessage());
+        Exception exception = assertThrows(PaymentSalaryNotFoundException.class, () -> paymentSalaryService.getById(WRONG_PAYMENT_SALARY_ID));
+        assertEquals(WRONG_PAYMENT_SALARY_MESSAGE, exception.getMessage());
 
-        verify(paymentSalaryRepository).findById(1);
+        verify(paymentSalaryRepository).findById(WRONG_PAYMENT_SALARY_ID);
         verifyNoMoreInteractions(paymentSalaryRepository);
     }
 
     @Test
-    void update() {
+    void update_success() {
         //given
-        UpdatePaymentSalaryRequest request = new UpdatePaymentSalaryRequest();
-        request.setId(11);
-        request.setEmployeeId(1);
-        request.setAmount(300);
-        Date date = new Date(2024, Calendar.JUNE, 4);
-        request.setDate(date);
+        UpdatePaymentSalaryRequest request = updatePaymentSalaryRequestBuilder().build();
 
-        PaymentSalary paymentSalary = new PaymentSalary(1, 300, date, false);
+        Integer requestId = request.getId();
+        Integer requestEmployeeId = request.getEmployeeId();
 
-        when(paymentSalaryRepository.findById(11)).thenReturn(Optional.of(paymentSalary));
+        PaymentSalary paymentSalary = generatePaymentSalaryAfterCreateBuilder().build();
 
-        Employee employee = new Employee("Ivan", "Ivanov", 500, "Department1");
+        when(paymentSalaryRepository.findById(requestId)).thenReturn(Optional.of(paymentSalary));
 
-        when(employeeRepository.findById(1)).thenReturn(Optional.of(employee));
+        Employee employee = generateEmployeeAfterCreateBuilder().build();
+
+        when(employeeRepository.findById(requestEmployeeId)).thenReturn(Optional.of(employee));
 
         //when
         PaymentSalaryResponse actualResponse = paymentSalaryService.update(request);
 
         //then
-        PaymentSalaryResponse expectedResponse = new PaymentSalaryResponse();
-        expectedResponse.setId(11);
-        expectedResponse.setEmployeeId(1);
-        expectedResponse.setAmount(300);
-        expectedResponse.setDate(date);
-        expectedResponse.setStatus(false);
+        PaymentSalaryResponse expectedResponse = paymentSalaryResponseBuilder().build();
 
         assertThat(actualResponse).isEqualTo(expectedResponse);
 
-        verify(employeeRepository).findById(1);
-        verify(paymentSalaryRepository).findById(11);
+        verify(employeeRepository).findById(requestEmployeeId);
+        verify(paymentSalaryRepository).findById(requestId);
         verify(paymentSalaryRepository).save(any());
         verifyNoMoreInteractions(paymentSalaryRepository);
     }
@@ -208,21 +204,18 @@ class PaymentSalaryServiceTest {
     @Test
     void update_employeeNotFound() {
         //given
-        UpdatePaymentSalaryRequest request = new UpdatePaymentSalaryRequest();
-        request.setId(11);
-        request.setEmployeeId(1);
-        request.setAmount(300);
-        Date date = new Date(2024, Calendar.JUNE, 4);
-        request.setDate(date);
+        UpdatePaymentSalaryRequest request = updatePaymentSalaryRequestBuilder().build();
 
-        when(employeeRepository.findById(1)).thenReturn(Optional.empty());
+        Integer requestEmployeeId = request.getEmployeeId();
+
+        when(employeeRepository.findById(requestEmployeeId)).thenReturn(Optional.empty());
 
         //when & then
         Exception exception = assertThrows(EmployeeNotFoundException.class, () -> paymentSalaryService.update(request));
-        String expectedMessage = "Employee with id = 1 is not found";
+        String expectedMessage = String.format("Employee with id = %s is not found", requestEmployeeId);
         assertEquals(expectedMessage, exception.getMessage());
 
-        verify(employeeRepository).findById(1);
+        verify(employeeRepository).findById(requestEmployeeId);
         verifyNoMoreInteractions(paymentSalaryRepository);
     }
 
@@ -230,51 +223,45 @@ class PaymentSalaryServiceTest {
     @Test
     void update_paymentSalaryNotFound() {
         //given
-        UpdatePaymentSalaryRequest request = new UpdatePaymentSalaryRequest();
-        request.setId(11);
-        request.setEmployeeId(1);
-        request.setAmount(300);
-        Date date = new Date(2024, Calendar.JUNE, 4);
-        request.setDate(date);
+        UpdatePaymentSalaryRequest request = updatePaymentSalaryRequestBuilder().build();
 
-        when(paymentSalaryRepository.findById(11)).thenReturn(Optional.empty());
+        Integer requestId = request.getId();
+        Integer requestEmployeeId = request.getEmployeeId();
 
-        Employee employee = new Employee("Ivan", "Ivanov", 500, "Department1");
+        Employee employee = generateEmployeeAfterCreateBuilder().build();
 
-        when(employeeRepository.findById(1)).thenReturn(Optional.of(employee));
+        when(paymentSalaryRepository.findById(requestId)).thenReturn(Optional.empty());
+        when(employeeRepository.findById(requestEmployeeId)).thenReturn(Optional.of(employee));
 
         //when & then
         Exception exception = assertThrows(PaymentSalaryNotFoundException.class, () -> paymentSalaryService.update(request));
-        String expectedMessage = "PaymentSalary with id = 11 is not found";
+        String expectedMessage = String.format("PaymentSalary with id = %s is not found", requestId);
         assertEquals(expectedMessage, exception.getMessage());
 
-        verify(employeeRepository).findById(1);
-        verify(paymentSalaryRepository).findById(11);
+        verify(employeeRepository).findById(requestEmployeeId);
+        verify(paymentSalaryRepository).findById(requestId);
         verifyNoMoreInteractions(paymentSalaryRepository);
     }
 
     @Test
     void delete() {
         //given
-        Date date = new Date(2024, Calendar.JUNE, 4);
-        PaymentSalary paymentSalary = new PaymentSalary(1, 300, date, false);
+        PaymentSalary paymentSalary = generatePaymentSalaryAfterCreateBuilder().build();
 
-        when(paymentSalaryRepository.findById(11)).thenReturn(Optional.of(paymentSalary));
+        Integer paymentSalaryId = paymentSalary.getId();
+
+        when(paymentSalaryRepository.findById(paymentSalaryId)).thenReturn(Optional.of(paymentSalary));
 
         //when
-        PaymentSalaryResponse actualResponse = paymentSalaryService.delete(11);
+        PaymentSalaryResponse actualResponse = paymentSalaryService.delete(paymentSalaryId);
 
         //then
-        PaymentSalaryResponse expectedResponse = new PaymentSalaryResponse();
-        expectedResponse.setEmployeeId(1);
-        expectedResponse.setAmount(300);
-        expectedResponse.setDate(date);
-        expectedResponse.setStatus(false);
+        PaymentSalaryResponse expectedResponse = paymentSalaryResponseBuilder().build();
 
         assertThat(actualResponse).isEqualTo(expectedResponse);
 
-        verify(paymentSalaryRepository).findById(11);
-        verify(paymentSalaryRepository).deleteById(11);
+        verify(paymentSalaryRepository).findById(paymentSalaryId);
+        verify(paymentSalaryRepository).deleteById(paymentSalaryId);
         verifyNoMoreInteractions(paymentSalaryRepository);
     }
 
@@ -282,43 +269,38 @@ class PaymentSalaryServiceTest {
     @Test
     void delete_paymentSalaryNotFound() {
         //given
-        when(paymentSalaryRepository.findById(1)).thenReturn(Optional.empty());
+        when(paymentSalaryRepository.findById(WRONG_PAYMENT_SALARY_ID)).thenReturn(Optional.empty());
 
         //when & then
-        Exception exception = assertThrows(PaymentSalaryNotFoundException.class, () -> paymentSalaryService.delete(1));
-        String expectedMessage = "PaymentSalary with id = 1 is not found";
-        assertEquals(expectedMessage, exception.getMessage());
+        Exception exception = assertThrows(PaymentSalaryNotFoundException.class, () -> paymentSalaryService.delete(WRONG_PAYMENT_SALARY_ID));
+        assertEquals(WRONG_PAYMENT_SALARY_MESSAGE, exception.getMessage());
 
-        verify(paymentSalaryRepository).findById(1);
+        verify(paymentSalaryRepository).findById(WRONG_PAYMENT_SALARY_ID);
         verifyNoMoreInteractions(paymentSalaryRepository);
     }
 
     @Test
     void paySalary() {
         //given
-        Date date = new Date(2024, Calendar.JUNE, 4);
-        PaymentSalary paymentSalary = new PaymentSalary(11, 500, date, false);
+        PaymentSalary paymentSalary = generatePaymentSalary1().build();
 
-        when(paymentSalaryRepository.findById(1)).thenReturn(Optional.of(paymentSalary));
+        Integer paymentSalaryId = paymentSalary.getId();
+        Integer paymentSalaryEmployeeId = paymentSalary.getEmployeeId();
 
-        Employee employee = new Employee("Ivan", "Ivanov", 500, "Department1");
+        Employee employee = generateEmployee1().build();
 
-        when(employeeRepository.findById(11)).thenReturn(Optional.of(employee));
+        when(paymentSalaryRepository.findById(paymentSalaryId)).thenReturn(Optional.of(paymentSalary));
+        when(employeeRepository.findById(paymentSalaryEmployeeId)).thenReturn(Optional.of(employee));
 
         //when
-        PaymentSalaryResponse actualResponse = paymentSalaryService.paySalary(1);
+        PaymentSalaryResponse actualResponse = paymentSalaryService.paySalary(paymentSalaryId);
 
         //then
-        PaymentSalaryResponse expectedPaymentSalaryResponse = new PaymentSalaryResponse();
-        expectedPaymentSalaryResponse.setEmployeeId(11);
-        expectedPaymentSalaryResponse.setAmount(500);
-        expectedPaymentSalaryResponse.setDate(date);
-        expectedPaymentSalaryResponse.setStatus(true);
-
+        PaymentSalaryResponse expectedPaymentSalaryResponse = paymentSalary1ResponseBuilder().build();
         assertThat(actualResponse).isEqualTo(expectedPaymentSalaryResponse);
 
-        verify(employeeRepository).findById(11);
-        verify(paymentSalaryRepository).findById(1);
+        verify(employeeRepository).findById(paymentSalaryEmployeeId);
+        verify(paymentSalaryRepository).findById(paymentSalaryId);
         verify(paymentSalaryRepository).save(paymentSalary);
         verifyNoMoreInteractions(paymentSalaryRepository);
     }
@@ -326,14 +308,15 @@ class PaymentSalaryServiceTest {
     @Test
     void paySalary_paymentSalaryNotFound() {
         //given
-        when(paymentSalaryRepository.findById(1)).thenReturn(Optional.empty());
+        Integer wrongPaymentSalaryId = 1;
+        when(paymentSalaryRepository.findById(wrongPaymentSalaryId)).thenReturn(Optional.empty());
 
         //when & then
-        Exception exception = assertThrows(PaymentSalaryNotFoundException.class, () -> paymentSalaryService.paySalary(1));
-        String expectedMessage = "PaymentSalary with id = 1 is not found";
+        Exception exception = assertThrows(PaymentSalaryNotFoundException.class, () -> paymentSalaryService.paySalary(wrongPaymentSalaryId));
+        String expectedMessage = String.format("PaymentSalary with id = %s is not found", wrongPaymentSalaryId);
         assertEquals(expectedMessage, exception.getMessage());
 
-        verify(paymentSalaryRepository).findById(1);
+        verify(paymentSalaryRepository).findById(wrongPaymentSalaryId);
         verifyNoMoreInteractions(paymentSalaryRepository);
     }
 
@@ -341,22 +324,26 @@ class PaymentSalaryServiceTest {
     @Test
     void paySalary_wrongSalary() {
         //given
-        Date date = new Date(2024, Calendar.JUNE, 4);
-        PaymentSalary paymentSalary = new PaymentSalary(11, 300, date, false);
+        PaymentSalary paymentSalary = generatePaymentSalaryAfterCreateBuilder().build();
 
-        when(paymentSalaryRepository.findById(1)).thenReturn(Optional.of(paymentSalary));
+        Integer paymentSalaryId = paymentSalary.getId();
+        Integer paymentSalaryEmployeeId = paymentSalary.getEmployeeId();
 
-        Employee employee = new Employee("Ivan", "Ivanov", 500, "Department1");
+        Employee employee = generateEmployeeAfterCreateBuilder().build();
 
-        when(employeeRepository.findById(11)).thenReturn(Optional.of(employee));
+        when(paymentSalaryRepository.findById(paymentSalaryId)).thenReturn(Optional.of(paymentSalary));
+        when(employeeRepository.findById(paymentSalaryEmployeeId)).thenReturn(Optional.of(employee));
 
         //when & then
-        Exception exception = assertThrows(WrongSalaryException.class, () -> paymentSalaryService.paySalary(1));
-        String expectedMessage = "Salary in payment not correspond the employee's salary";
+        Exception exception = assertThrows(WrongSalaryException.class, () -> paymentSalaryService.paySalary(paymentSalaryId));
+        String expectedMessage = "Salary in payment is not correspond the employee's salary";
         assertEquals(expectedMessage, exception.getMessage());
 
-        verify(employeeRepository).findById(11);
-        verify(paymentSalaryRepository).findById(1);
+        verify(employeeRepository).findById(paymentSalaryEmployeeId);
+        verify(paymentSalaryRepository).findById(paymentSalaryId);
         verifyNoMoreInteractions(paymentSalaryRepository);
     }
+
+
+
 }

@@ -1,6 +1,10 @@
 package com.colvir.szasemkov.homework1.service.paymentsalary;
 
-import com.colvir.szasemkov.homework1.dto.paymentsalary.*;
+import com.colvir.szasemkov.homework1.dto.paymentsalary.CreatePaymentSalaryRequest;
+import com.colvir.szasemkov.homework1.dto.paymentsalary.CreatePaymentSalaryResponse;
+import com.colvir.szasemkov.homework1.dto.paymentsalary.PaymentSalaryPageResponse;
+import com.colvir.szasemkov.homework1.dto.paymentsalary.PaymentSalaryResponse;
+import com.colvir.szasemkov.homework1.dto.paymentsalary.UpdatePaymentSalaryRequest;
 import com.colvir.szasemkov.homework1.exception.employee.EmployeeNotFoundException;
 import com.colvir.szasemkov.homework1.exception.paymentsalary.PaymentSalaryNotFoundException;
 import com.colvir.szasemkov.homework1.exception.paymentsalary.WrongSalaryException;

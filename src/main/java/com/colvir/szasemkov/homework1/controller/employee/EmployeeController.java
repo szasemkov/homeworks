@@ -1,9 +1,20 @@
 package com.colvir.szasemkov.homework1.controller.employee;
 
-import com.colvir.szasemkov.homework1.dto.employee.*;
+import com.colvir.szasemkov.homework1.dto.employee.CreateEmployeeRequest;
+import com.colvir.szasemkov.homework1.dto.employee.CreateEmployeeResponse;
+import com.colvir.szasemkov.homework1.dto.employee.EmployeePageResponse;
+import com.colvir.szasemkov.homework1.dto.employee.EmployeeResponse;
+import com.colvir.szasemkov.homework1.dto.employee.UpdateEmployeeRequest;
 import com.colvir.szasemkov.homework1.service.employee.EmployeeService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("employee")

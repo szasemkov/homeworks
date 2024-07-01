@@ -1,0 +1,69 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: szasemkov
+      changes:
+        - createTable:
+            tableName: employees
+            columns:
+              - column:
+                  name: id
+                  type: INTEGER
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: first_name
+                  type: TEXT
+              - column:
+                  name: last_name
+                  type: TEXT
+              - column:
+                  name: salary
+                  type: INTEGER
+              - column:
+                  name: department
+                  type: TEXT
+
+  - changeSet:
+      id: 2
+      author: szasemkov
+      changes:
+        - createTable:
+            tableName: payments
+            columns:
+              - column:
+                  name: id
+                  type: INTEGER
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    primaryKeyName: payments_pk
+              - column:
+                  name: employee_id
+                  type: INTEGER
+              - column:
+                  name: amount
+                  type: INTEGER
+              - column:
+                  name: date
+                  type: DATE
+              - column:
+                  name: status
+                  type: BOOLEAN
+
+  - changeSet:
+      id: 3
+      author: szasemkov
+      changes:
+        - createSequence:
+            sequenceName: seq_employee
+            startValue: 1
+
+  - changeSet:
+     id: 4
+     author: szasemkov
+     changes:
+        - createSequence:
+              sequenceName: seq_payment
+              startValue: 1

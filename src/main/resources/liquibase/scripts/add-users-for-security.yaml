@@ -1,0 +1,37 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: szasemkov
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: INT
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: username
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: password
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: roles
+                  type: TEXT
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 2
+      author: szasemkov
+      changes:
+        - createSequence:
+            sequenceName: user_sequence
+            startValue: 1
