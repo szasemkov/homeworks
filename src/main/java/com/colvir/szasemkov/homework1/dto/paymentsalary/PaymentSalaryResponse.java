@@ -16,5 +16,6 @@ public class PaymentSalaryResponse {
 
     private Date date;
 
+    @Builder.Default
     private Boolean status = Boolean.FALSE;
 }
